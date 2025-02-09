@@ -1,43 +1,15 @@
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { CollectionReference, DocumentData, getFirestore } from 'firebase-admin/firestore';
 import { Product, Order, User, OrderStatus } from '../../types';
-
-// Initialize Firebase
-function initializeFirebase() {
-  if (process.env.FIREBASE_PRIVATE_KEY) {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      }),
-    });
-  } else {
-    const serviceAccount = require('../../../serviceAccountKey.json');
-    initializeApp({
-      credential: cert(serviceAccount),
-    });
-  }
-
-  const db = getFirestore();
-  
-  if (process.env.NODE_ENV === 'development') {
-    db.settings({
-      host: 'localhost:8080',
-      ssl: false
-    });
-  }
-
-  return db;
-}
+import { initializeFirebase } from '../../config/firebase';
 
 // User Repository
 export class UserRepository {
-  private db = getFirestore();
-  private collection = this.db.collection('users');
+  private db: ReturnType<typeof getFirestore>;
+  private collection: CollectionReference<DocumentData>;
 
   constructor() {
-    initializeFirebase();
+    this.db = initializeFirebase();
+    this.collection = this.db.collection('users');
   }
 
   async getById(id: string): Promise<User | null> {
@@ -77,10 +49,11 @@ export class UserRepository {
 // Product Repository
 export class ProductRepository {
   private db = getFirestore();
-  private collection = this.db.collection('products');
+  private collection: CollectionReference<DocumentData>;  
 
   constructor() {
-    initializeFirebase();
+    this.db = initializeFirebase();
+    this.collection = this.db.collection('products');
   }
 
   async getById(id: string): Promise<Product | null> {
@@ -146,10 +119,11 @@ export class ProductRepository {
 // Order Repository
 export class OrderRepository {
   private db = getFirestore();
-  private collection = this.db.collection('orders');
+  private collection: CollectionReference<DocumentData>;
 
   constructor() {
-    initializeFirebase();
+    this.db = initializeFirebase();
+    this.collection = this.db.collection('orders');
   }
 
   async getById(id: string): Promise<Order | null> {

@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "public": true,
+  "builds": [
+    {
+      "src": "src/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/webhook",
+      "methods": ["POST"],
+      "dest": "/src/index.ts"
+    },
+    {
+      "src": "/health",
+      "methods": ["GET"],
+      "dest": "/src/index.ts"
+    }
+  ]
+}

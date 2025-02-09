@@ -3,11 +3,22 @@ import { middleware } from '@line/bot-sdk';
 import { LineService } from './services/line';
 import * as dotenv from 'dotenv';
 import { ProductRepository } from './repositories/firebase';
+import { initializeFirebase } from './config/firebase';
 
 dotenv.config();
 
+initializeFirebase();
+
 const app = express();
 const port = process.env.PORT || 3000;
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
 
 const lineConfig = {
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN!,
@@ -16,7 +27,6 @@ const lineConfig = {
 
 const lineService = new LineService(lineConfig);
 
-// Add product routes
 app.get('/api/products/:userId', async (req, res) => {
   try {
     const productRepo = new ProductRepository();
