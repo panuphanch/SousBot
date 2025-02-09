@@ -1,0 +1,50 @@
+{
+  "name": "sousbot",
+  "version": "1.0.0",
+  "description": "Your digital sous chef for small bakery management. SousBot simplifies order tracking and inventory management through LINE ChatBot and Facebook Messenger integration.",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@line/bot-sdk": "^7.5.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase-admin": "^13.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.3",
+    "@types/node": "^18.0.0",
+    "jest": "^29.6.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/panuphanch/SousBot.git"
+  },
+  "keywords": [
+    "chatbot",
+    "line-bot",
+    "facebook-messenger",
+    "bakery",
+    "order-management",
+    "inventory-management",
+    "small-business",
+    "typescript",
+    "firebase",
+    "pos",
+    "point-of-sale",
+    "restaurant-management",
+    "sous-chef",
+    "order-tracking"
+  ],
+  "author": "Panuphan Chaimanee",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/panuphanch/SousBot/issues"
+  },
+  "homepage": "https://github.com/panuphanch/SousBot#readme"
+}
