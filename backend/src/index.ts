@@ -4,6 +4,7 @@ import { LineService } from './services/line';
 import * as dotenv from 'dotenv';
 import { ProductRepository, UserRepository } from './repositories/firebase';
 import { initializeFirebase } from './config/firebase';
+import { error } from 'console';
 
 dotenv.config();
 
@@ -100,11 +101,19 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/webhook', middleware(lineConfig), (req, res) => {
-  Promise.all(req.body.events.map(lineService.handleWebhook))
+  console.log('Webhook payload:', JSON.stringify(req.body, null, 2));
+  
+  if (!Array.isArray(req.body.events)) {
+    console.error('Invalid webhook payload:', req.body);
+    res.status(400).json({ error: 'Invalid webhook payload' });
+    return;
+  }
+
+  lineService.handleWebhook(req.body.events)
     .then(() => res.json({ status: 'ok' }))
     .catch((err) => {
-      console.error(err);
-      res.status(500).end();
+      console.error('Webhook error:', err);
+      res.status(500).json({ error: 'Internal server error' });
     });
 });
 

@@ -27,6 +27,11 @@ export class LineService {
 
   // Main webhook handler - similar to ASP.NET controller action
   async handleWebhook(events: WebhookEvent[]): Promise<void> {
+    if (!Array.isArray(events)) {
+      console.error('Invalid events payload:', events);
+      throw new Error('Invalid events payload');
+    }
+    
     // Process events in parallel like Task.WhenAll
     await Promise.all(
       events.map(async (event) => {
