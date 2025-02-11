@@ -2,7 +2,7 @@ import express from 'express';
 import { middleware } from '@line/bot-sdk';
 import { LineService } from './services/line';
 import * as dotenv from 'dotenv';
-import { ProductRepository } from './repositories/firebase';
+import { ProductRepository, UserRepository } from './repositories/firebase';
 import { initializeFirebase } from './config/firebase';
 
 dotenv.config();
@@ -57,8 +57,50 @@ app.patch('/api/products/:productId/availability', async (req, res) => {
   }
 });
 
+app.post('/register', async (req, res) => {
+  try {
+    const userRepo = new UserRepository();
+    const { lineUserId, shopName, displayName } = req.body;
+
+    // Validate required fields
+    if (!lineUserId || !shopName || !displayName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await userRepo.getByLineUserId(lineUserId);
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: 'User already registered'
+      });
+    }
+
+    // Create new user
+    const user = await userRepo.create({
+      lineUserId,
+      shopName: shopName.trim(),
+      displayName
+    });
+
+    res.status(201).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('User registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
 app.post('/webhook', middleware(lineConfig), (req, res) => {
-  Promise.all(req.body.events.map(lineService.handleMessage))
+  Promise.all(req.body.events.map(lineService.handleWebhook))
     .then(() => res.json({ status: 'ok' }))
     .catch((err) => {
       console.error(err);
