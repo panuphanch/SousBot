@@ -65,10 +65,48 @@ export class LineService {
     
     // Check if user exists, similar to Entity Framework's FirstOrDefault
     const user = await this.userRepo.getByLineUserId(userId);
+    
+    // If user not registered, send them to LIFF registration page
     if (!user) {
+      const liffUrl = `${process.env.LIFF_URL}/register`;
       await this.client.replyMessage(event.replyToken, {
-        type: 'text',
-        text: 'สวัสดีเจ้า กรุณาลงทะเบียนก่อนนะเจ้า พิมพ์ "สมัคร" เพื่อเริ่มต้นใช้งานเน้อ'
+        type: 'flex',
+        altText: 'ลงทะเบียนร้านค้า',
+        contents: {
+          type: 'bubble',
+          body: {
+            type: 'box',
+            layout: 'vertical',
+            contents: [
+              {
+                type: 'text',
+                text: 'สวัสดีเจ้า ยินดีต้อนรับสู่สมพร',
+                weight: 'bold',
+                size: 'xl'
+              },
+              {
+                type: 'text',
+                text: 'กรุณาลงทะเบียนร้านค้าก่อนเริ่มใช้งานเน้อเจ้า',
+                margin: 'md'
+              }
+            ]
+          },
+          footer: {
+            type: 'box',
+            layout: 'vertical',
+            contents: [
+              {
+                type: 'button',
+                style: 'primary',
+                action: {
+                  type: 'uri',
+                  label: 'ลงทะเบียนร้านค้า',
+                  uri: liffUrl
+                }
+              }
+            ]
+          }
+        }
       });
       return;
     }
