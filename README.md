@@ -32,3 +32,48 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Project structure
+```
+sousbot/
+├── backend/                                  # Backend
+│   ├── config/                               # Configuration files
+│   │   └── environment.ts                    # Environment configuration
+│   │   └── firebase.ts                       # Firebase configuration
+│   ├── repositories/
+│   │   └── firebase/
+│   │       └── index.ts                      # Existing repository with Firebase operations
+│   ├── services/
+│   │   └── line/
+│   │       └── index.ts                      # Existing LINE service
+│   ├── types/
+│   │   └── index.ts                          # Shared types
+│   └── index.ts                              # Main Express app
+├── frontend/                                 # Frontend
+│   └── src/
+│       └── app/
+│           └── menu-management/              # Menu Management feature
+│               └── [userId]/
+│                   ├── page.tsx              # Menu Management page
+│           └── order-management/             # Order Management feature
+│               └── [userId]/
+│                   ├── page.tsx              # Order Management page
+│           └── register/             				# Register feature
+│               └── [userId]/
+│                   ├── page.tsx              # Register page
+│           └── api/                          # Frontend API routes (proxies)
+│               └── users/										# User-scoped routes
+│                   ├── [userId]/
+│                   │   └── products
+│                   │       └── route.ts			# GET/POST products for user
+│                   |       └── [productId]/
+│                   |           └── route.ts	# GET/PATCH/DELETE specific product
+│           └── components/                   # Shared components
+│               └── ui/                       # UI components
+│                   └── alert.tsx             # Alert component
+│                   └── button.tsx            # Button component
+│                   └── card.tsx              # Card component
+│           └── lib/                          # Shared libraries
+│               └── types/                    
+│                   └── index.ts              # Shared types
+```
