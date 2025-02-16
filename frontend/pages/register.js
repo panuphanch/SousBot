@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import RegisterForm from '../components/RegisterForm';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function Register({ liff, liffError }) {
   const router = useRouter();
@@ -22,8 +23,15 @@ export default function Register({ liff, liffError }) {
     }
   }, [liffError, router]);
 
+  // Add loading state check
   if (!liff) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+        <div className="p-8 bg-white rounded-lg shadow-md">
+          <LoadingSpinner size="large" text="กำลังโหลด..." />
+        </div>
+      </div>
+    );
   }
 
   return (

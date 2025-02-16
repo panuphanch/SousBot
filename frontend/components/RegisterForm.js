@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { registerShop } from '../utils/api';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { logError, logInfo } from '../utils/logger';
 
 export default function RegisterForm({ liff, onSuccess }) {
   const [shopName, setShopName] = useState('');
@@ -7,6 +9,9 @@ export default function RegisterForm({ liff, onSuccess }) {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
+    logInfo('Registering shop', {
+      shopName: shopName,
+    });
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -19,53 +24,74 @@ export default function RegisterForm({ liff, onSuccess }) {
         shopName: shopName,
       };
 
+      logInfo('Get Profile', {
+        lineUserId: profile.userId,
+        displayName: profile.displayName,
+        shopName: shopName,
+      });
+
       const result = await registerShop(userData);
       onSuccess(result);
     } catch (err) {
       setError('การลงทะเบียนล้มเหลว กรุณาลองใหม่อีกครั้ง');
-      console.error('Registration error:', err);
+      logError('Shop registration failed', {
+        lineUserId: profile.userId,
+        shopName: shopName,
+        error: err,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">ลงทะเบียนร้านค้า</h2>
-      
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-          {error}
-        </div>
-      )}
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-center mb-6">ลงทะเบียนร้านค้า</h2>
+          
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="shopName" className="block text-gray-700 mb-2">
-            ชื่อร้าน
-          </label>
-          <input
-            type="text"
-            id="shopName"
-            value={shopName}
-            onChange={(e) => setShopName(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label 
+                htmlFor="shopName" 
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                ชื่อร้าน
+              </label>
+              <input
+                type="text"
+                id="shopName"
+                value={shopName}
+                onChange={(e) => setShopName(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
+                placeholder="กรุณากรอกชื่อร้านของคุณ"
+                required
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`w-full py-2 px-4 rounded-lg text-white font-medium 
-            ${isLoading 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-        >
-          {isLoading ? 'กำลังลงทะเบียน...' : 'ลงทะเบียน'}
-        </button>
-      </form>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed mt-4"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <LoadingSpinner />
+                  <span>กำลังลงทะเบียน...</span>
+                </div>
+              ) : (
+                'ลงทะเบียน'
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
