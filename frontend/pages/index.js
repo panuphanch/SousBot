@@ -1,13 +1,24 @@
 import Head from "next/head";
 import packageJson from "../package.json";
+import { useEffect } from "react";
+import { logError, logInfo } from "../utils/logger";
 
 export default function Home(props) {
-  /** You can access to liff and liffError object through the props.
-   *  const { liff, liffError } = props;
-   *  console.log(liff.getVersion());
-   *
-   *  Learn more about LIFF API documentation (https://developers.line.biz/en/reference/liff)
-   **/
+  const { liff, liffError } = props;
+  
+  useEffect(() => {
+    if (liff) {
+      logInfo('LIFF initialized:', {
+        liffVersion: liff.getVersion()
+      });
+    }
+    if (liffError) {
+      logError('LIFF initialization failed:', {
+        error: liffError
+      });
+    }
+  }, [liff, liffError]);
+
   return (
     <div>
       <Head>

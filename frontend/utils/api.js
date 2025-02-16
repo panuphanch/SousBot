@@ -1,3 +1,5 @@
+import { logError } from "./logger";
+
 // utils/api.js
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -17,7 +19,10 @@ export async function registerShop(userData) {
     
     return await response.json();
   } catch (error) {
-    console.error('Registration error:', error);
+    logError('Registration error:', {
+      userData: userData,
+      error: error,
+    });
     throw error;
   }
 }

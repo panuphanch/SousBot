@@ -10,11 +10,22 @@
   },
   "dependencies": {
     "@line/liff": "2.24.0",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@tailwindcss/postcss": "^4.0.6",
+    "autoprefixer": "^10.4.20",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.475.0",
     "next": "^15.1.7",
+    "postcss": "^8.5.2",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss": "^4.0.6",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@types/react": "19.0.8",
     "eslint": "9.13.0",
     "eslint-config-next": "15.0.1"
   }
