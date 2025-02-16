@@ -4,21 +4,22 @@ import { LineService } from './services/line';
 import * as dotenv from 'dotenv';
 import { ProductRepository, UserRepository } from './repositories/firebase';
 import { initializeFirebase } from './config/firebase';
-import { error } from 'console';
+import { logError, logInfo, loggerMiddleware } from './utils/logger';
 
 dotenv.config();
 
 initializeFirebase();
 
 const app = express();
+app.use(loggerMiddleware);
 const port = process.env.PORT || 3000;
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logError('Unhandled Rejection at', { promise: promise, reason: reason });
 });
 
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  logError('Uncaught Exception', { error: error });
 });
 
 const lineConfig = {
@@ -34,7 +35,10 @@ app.get('/api/products/:userId', async (req, res) => {
     const products = await productRepo.getByOwner(req.params.userId);
     res.json(products);
   } catch (error) {
-    console.error('Error fetching products:', error);
+    logError('Error fetching products', {
+      userId: req.params.userId,
+      error: error,
+    });
     res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
@@ -53,7 +57,10 @@ app.patch('/api/products/:productId/availability', async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Error updating product:', error);
+    logError('Error updaing product', {
+      productId: req.params.productId,
+      error: error,
+    });
     res.status(500).json({ error: 'Failed to update product' });
   }
 });
@@ -92,7 +99,10 @@ app.post('/register', async (req, res) => {
       data: user
     });
   } catch (error) {
-    console.error('User registration error:', error);
+    logError('User registration error', {
+      body: JSON.stringify(req.body, null, 2),
+      error: error 
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -101,10 +111,14 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/webhook', middleware(lineConfig), (req, res) => {
-  console.log('Webhook payload:', JSON.stringify(req.body, null, 2));
+  logInfo('Webhook payload:', {
+    payload: JSON.stringify(req.body, null, 2)
+  });
   
   if (!Array.isArray(req.body.events)) {
-    console.error('Invalid webhook payload:', req.body);
+    logError('Invalid webhook payload:', {
+      payload: JSON.stringify(req.body, null, 2)
+    });
     res.status(400).json({ error: 'Invalid webhook payload' });
     return;
   }
@@ -112,7 +126,9 @@ app.post('/webhook', middleware(lineConfig), (req, res) => {
   lineService.handleWebhook(req.body.events)
     .then(() => res.json({ status: 'ok' }))
     .catch((err) => {
-      console.error('Webhook error:', err);
+      logError('Webhook error:', {
+        error: err
+      });
       res.status(500).json({ error: 'Internal server error' });
     });
 });
@@ -122,5 +138,5 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  logInfo(`Server running on port ${port}`);
 });

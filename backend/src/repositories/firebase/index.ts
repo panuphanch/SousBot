@@ -1,6 +1,7 @@
 import { CollectionReference, DocumentData, getFirestore } from 'firebase-admin/firestore';
 import { Product, Order, User, OrderStatus } from '../../types';
 import { initializeFirebase } from '../../config/firebase';
+import { logInfo } from '../../utils/logger';
 
 // User Repository
 export class UserRepository {
@@ -21,6 +22,7 @@ export class UserRepository {
   }
 
   async getByLineUserId(lineUserId: string): Promise<User | null> {
+    logInfo(`Get user by lineUserId: ${lineUserId}`);
     const snapshot = await this.collection
       .where('lineUserId', '==', lineUserId)
       .limit(1)
@@ -28,6 +30,7 @@ export class UserRepository {
     
     if (snapshot.empty) return null;
     
+    logInfo(`User found: ${snapshot.docs[0].data()}`);
     const doc = snapshot.docs[0];
     const data = doc.data() as Omit<User, 'id'>;
     return { ...data, id: doc.id };
