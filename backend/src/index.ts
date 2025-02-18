@@ -1,17 +1,24 @@
 import express from 'express';
 import { middleware } from '@line/bot-sdk';
 import { LineService } from './services/line';
-import * as dotenv from 'dotenv';
+import './config/environment';
 import { ProductRepository, UserRepository } from './repositories/firebase';
 import { initializeFirebase } from './config/firebase';
 import { logError, logInfo, loggerMiddleware } from './utils/logger';
-
-dotenv.config();
+import cors from 'cors';
+import { log } from 'console';
 
 initializeFirebase();
 
 const app = express();
+app.use(express.json());
 app.use(loggerMiddleware);
+app.use(cors({
+  origin: process.env.LIFF_URL, // Your LIFF app URL
+  methods: ['GET', 'POST', 'PATCH'],
+  allowedHeaders: ['Content-Type']
+}));
+
 const port = process.env.PORT || 3000;
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -28,6 +35,28 @@ const lineConfig = {
 };
 
 const lineService = new LineService(lineConfig);
+
+app.post('/api/debug-log', (req, res) => {
+  try {
+    const { message, metadata, context } = req.body;
+    
+    logInfo(`[LIFF Debug] ${message}`, {
+      ...metadata,
+      source: 'liff'
+    }, {
+      ...context,
+      ...req.logContext
+    });
+    
+    res.json({ status: 'ok' });
+  } catch (error) {
+    logError('Debug logging error', {
+      error,
+      body: req.body
+    }, req.logContext);
+    res.status(500).json({ error: 'Failed to log debug message' });
+  }
+});
 
 app.get('/api/products/:userId', async (req, res) => {
   try {

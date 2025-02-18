@@ -1,4 +1,4 @@
-type LogLevel = 'info' | 'warn' | 'error';
+type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 type LogMetadata = Record<string, any>;
 
 interface LogEntry {
@@ -12,6 +12,13 @@ interface LogEntry {
     userId?: string;
     requestId?: string;
   };
+}
+
+interface DebugLogPayload {
+  message: string;
+  metadata?: LogMetadata;
+  context?: LogEntry['context'];
+  source: 'liff' | 'web' | 'backend';
 }
 
 class Logger {
@@ -101,6 +108,20 @@ class Logger {
 
   public error(message: string, metadata?: LogMetadata, context?: LogEntry['context']) {
     this.log('error', message, metadata, context);
+  }
+
+  public debug(message: string, metadata?: LogMetadata, context?: LogEntry['context']) {
+    this.log('debug', message, {
+      ...metadata,
+      source: 'backend' // Default source
+    }, context);
+  }
+  
+  public debugFromLiff(payload: DebugLogPayload) {
+    this.log('debug', `[LIFF] ${payload.message}`, {
+      ...payload.metadata,
+      source: 'liff'
+    }, payload.context);
   }
 }
 
