@@ -6,14 +6,20 @@ import { logError, logInfo } from "../utils/logger";
 export default function Home(props) {
   const { liff, liffError } = props;
   
-  useEffect(() => {
+  useEffect(() => async () => {
+    const setupVConsole = async () => {
+      const VConsole = (await import('vconsole')).default
+      new VConsole()
+    }
+    setupVConsole()
+    
     if (liff) {
-      logInfo('LIFF initialized:', {
+      await logInfo('LIFF initialized:', {
         liffVersion: liff.getVersion()
       });
     }
     if (liffError) {
-      logError('LIFF initialization failed:', {
+      await logError('LIFF initialization failed:', {
         error: liffError
       });
     }

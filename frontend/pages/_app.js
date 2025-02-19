@@ -2,7 +2,7 @@ import "../styles/globals.css";
 import { useState, useEffect } from "react";
 import liff from "@line/liff";
 import { useRouter } from "next/router";
-import { logInfo } from "../utils/logger";
+import { logInfo, logError } from "../utils/logger";
 
 function MyApp({ Component, pageProps }) {
   const [liffObject, setLiffObject] = useState(null);
@@ -12,10 +12,10 @@ function MyApp({ Component, pageProps }) {
   // Execute liff.init() when the app is initialized
   useEffect(() => {
     const initLiff = async () => {
-      logInfo("LIFF Starter: Initializing LIFF SDK...");
+      await logInfo("LIFF Starter: Initializing LIFF SDK...");
       try {
         await liff.init({ liffId: process.env.LIFF_ID });
-        logInfo("LIFF Starter: LIFF SDK initialized");
+        await logInfo("LIFF Starter: LIFF SDK initialized");
         setLiffObject(liff);
       
         if (
@@ -25,11 +25,11 @@ function MyApp({ Component, pageProps }) {
           router.replace("/register");
         }
       }catch (error) {
-        logError("LIFF Starter: LIFF SDK initialization failed", {
+        await logError("LIFF Starter: LIFF SDK initialization failed", {
           error: error,
         });
         if (!process.env.liffId) {
-          logInfo(
+          await logInfo(
             "LIFF Starter: Please make sure that you provided `LIFF_ID` as an environmental variable."
           );
         }

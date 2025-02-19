@@ -9,7 +9,7 @@ export default function RegisterForm({ liff, onSuccess }) {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
-    logInfo('Registering shop', {
+    await logInfo('Registering shop', {
       shopName: shopName,
     });
     e.preventDefault();
@@ -24,7 +24,7 @@ export default function RegisterForm({ liff, onSuccess }) {
         shopName: shopName,
       };
 
-      logInfo('Get Profile', {
+      await logInfo('Get Profile', {
         lineUserId: profile.userId,
         displayName: profile.displayName,
         shopName: shopName,
@@ -34,7 +34,7 @@ export default function RegisterForm({ liff, onSuccess }) {
       onSuccess(result);
     } catch (err) {
       setError('การลงทะเบียนล้มเหลว กรุณาลองใหม่อีกครั้ง');
-      logError('Shop registration failed', {
+      await logError('Shop registration failed', {
         lineUserId: profile.userId,
         shopName: shopName,
         error: err,

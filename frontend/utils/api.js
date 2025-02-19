@@ -19,7 +19,7 @@ export async function registerShop(userData) {
     
     return await response.json();
   } catch (error) {
-    logError('Registration error:', {
+    await logError('Registration error:', {
       userData: userData,
       error: error,
     });

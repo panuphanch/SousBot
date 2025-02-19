@@ -12,6 +12,7 @@ class Logger {
   private static instance: Logger;
   private isServer: boolean;
   private isVercelProduction: boolean;
+  private debugApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/debug-log`;
 
   private constructor() {
     this.isServer = typeof window === 'undefined';
@@ -34,6 +35,37 @@ class Logger {
     };
   }
 
+  private async sendToDebugApi(entry: LogEntry) {
+    try {
+      const payload = {
+        message: entry.message,
+        metadata: {
+          ...entry.metadata,
+          level: entry.level,
+          timestamp: entry.timestamp
+        },
+        context: {
+          path: typeof window !== 'undefined' ? window.location.pathname : 'server',
+          userId: entry.metadata?.lineUserId || 'unknown'
+        }
+      };
+
+      const response = await fetch(this.debugApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        console.error('Failed to send log to debug API:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error sending log to debug API:', error);
+    }
+  }
+
   private logToVercel(entry: LogEntry) {
     // Vercel uses console.log for their logging system
     const logObject = {
@@ -53,10 +85,9 @@ class Logger {
     }
   }
 
-  private logToServer(entry: LogEntry) {
+  private async logToServer(entry: LogEntry) {
     if (this.isVercelProduction) {
-      this.logToVercel(entry);
-      return;
+      await this.sendToDebugApi(entry);
     }
 
     const formattedMetadata = entry.metadata ? 
@@ -67,7 +98,11 @@ class Logger {
     );
   }
 
-  private logToClient(entry: LogEntry) {
+  private async logToClient(entry: LogEntry) {
+    if (this.isVercelProduction || process.env.NEXT_PUBLIC_ENABLE_DEBUG_API === 'true') {
+      await this.sendToDebugApi(entry);
+    }
+    
     // For development, use console with colors
     const styles = {
       info: 'color: #00f',
@@ -82,53 +117,52 @@ class Logger {
     );
   }
 
-  public log(level: LogLevel, message: string, metadata?: LogMetadata) {
+  public async log(level: LogLevel, message: string, metadata?: LogMetadata) {
     const entry = this.formatLogEntry(level, message, metadata);
     
     if (this.isServer) {
-      this.logToServer(entry);
+      await this.logToServer(entry);
     } else {
-      this.logToClient(entry);
+      await this.logToClient(entry);
     }
   }
 
-  public info(message: string, metadata?: LogMetadata) {
-    this.log('info', message, metadata);
+  public async info(message: string, metadata?: LogMetadata) {
+    await this.log('info', message, metadata);
   }
 
-  public warn(message: string, metadata?: LogMetadata) {
-    this.log('warn', message, metadata);
+  public async warn(message: string, metadata?: LogMetadata) {
+    await this.log('warn', message, metadata);
   }
 
-  public error(message: string, metadata?: LogMetadata) {
-    this.log('error', message, metadata);
+  public async error(message: string, metadata?: LogMetadata) {
+    await this.log('error', message, metadata);
   }
 }
 
 export const logger = Logger.getInstance();
 
 // Utility functions for easier use
-export const logError = (error: Error | string, metadata?: LogMetadata) => {
+export const logError = async (error: Error | string, metadata?: LogMetadata) => {
   const errorMessage = error instanceof Error ? error.message : error;
   const errorMetadata = error instanceof Error 
     ? { 
         ...metadata, 
         stack: error.stack,
-        // Add useful debugging information
         path: typeof window !== 'undefined' ? window.location.pathname : 'server',
         timestamp: new Date().toISOString()
       }
     : metadata;
   
-  logger.error(errorMessage, errorMetadata);
+  await logger.error(errorMessage, errorMetadata);
 };
 
-export const logInfo = (message: string, metadata?: LogMetadata) => {
-  logger.info(message, metadata);
+export const logInfo = async (message: string, metadata?: LogMetadata) => {
+  await logger.info(message, metadata);
 };
 
-export const logWarning = (message: string, metadata?: LogMetadata) => {
-  logger.warn(message, metadata);
+export const logWarning = async (message: string, metadata?: LogMetadata) => {
+  await logger.warn(message, metadata);
 };
 
 export default logger;
