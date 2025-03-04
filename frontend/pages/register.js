@@ -18,6 +18,12 @@ export default function Register({ liff, liffError }) {
 
   // Redirect if LIFF error
   useEffect(() => {
+    const setupVConsole = async () => {
+      const VConsole = (await import('vconsole')).default
+      new VConsole()
+    }
+    setupVConsole()
+    
     if (liffError) {
       router.push('/error');
     }
