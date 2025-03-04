@@ -17,6 +17,26 @@
       "src": "/health",
       "methods": ["GET"],
       "dest": "/src/index.ts"
+    },
+    {
+      "src": "/api/debug-log",
+      "methods": ["POST"],
+      "dest": "/src/index.ts"
+    },
+    {
+      "src": "/api/products/([^/]+)",
+      "methods": ["GET"],
+      "dest": "/src/index.ts"
+    },
+    {
+      "src": "/api/products/([^/]+)/availability",
+      "methods": ["PATCH"],
+      "dest": "/src/index.ts"
+    },
+    {
+      "src": "/api/register",
+      "methods": ["POST"],
+      "dest": "/src/index.ts"
     }
   ]
 }

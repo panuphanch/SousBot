@@ -4,13 +4,16 @@ import { LineService } from './services/line';
 import * as dotenv from 'dotenv';
 import { ProductRepository, UserRepository } from './repositories/firebase';
 import { initializeFirebase } from './config/firebase';
-import { error } from 'console';
+import './config/environment';
+import allowCors from './middleware/cors';
 
 dotenv.config();
 
 initializeFirebase();
 
 const app = express();
+app.use(allowCors);
+
 const port = process.env.PORT || 3000;
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -58,7 +61,7 @@ app.patch('/api/products/:productId/availability', async (req, res) => {
   }
 });
 
-app.post('/register', async (req, res) => {
+app.post('/api/register', express.json(), async (req, res) => {
   try {
     const userRepo = new UserRepository();
     const { lineUserId, shopName, displayName } = req.body;
