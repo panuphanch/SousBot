@@ -2,7 +2,7 @@ import "../styles/globals.css";
 import { useState, useEffect } from "react";
 import liff from "@line/liff";
 import { useRouter } from "next/router";
-import { logInfo } from "../utils/logger";
+import { logInfo, logError } from "../utils/logger";
 
 function MyApp({ Component, pageProps }) {
   const [liffObject, setLiffObject] = useState(null);

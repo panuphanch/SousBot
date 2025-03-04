@@ -5,7 +5,8 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost
 
 export async function registerShop(userData) {
   try {
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    console.log('userData', userData);
+    const response = await fetch(`${API_BASE_URL}/api/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

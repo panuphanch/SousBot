@@ -1,11 +1,12 @@
 import Head from "next/head";
 import packageJson from "../package.json";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { logError, logInfo } from "../utils/logger";
 
 export default function Home(props) {
   const { liff, liffError } = props;
-  
+  const [healthStatus, setHealthStatus] = useState(null);
+
   useEffect(() => {
     if (liff) {
       logInfo('LIFF initialized:', {
@@ -18,6 +19,17 @@ export default function Home(props) {
       });
     }
   }, [liff, liffError]);
+
+  const checkHealth = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
+      const data = await response.json();
+      setHealthStatus(data.status);
+    } catch (error) {
+      console.error('Error checking health:', error);
+      setHealthStatus('Error');
+    }
+  };
 
   return (
     <div>
@@ -76,7 +88,18 @@ export default function Home(props) {
           >
             LINE Developers Console
           </a>
+          <button
+            onClick={checkHealth}
+            className="home__buttons__button button--primary"
+          >
+            Check Backend Health
+          </button>
         </div>
+        {healthStatus && (
+          <div className="home__status">
+            Backend Health Status: {healthStatus}
+          </div>
+        )}
       </div>
     </div>
   );
