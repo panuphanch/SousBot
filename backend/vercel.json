@@ -9,6 +9,11 @@
   ],
   "routes": [
     {
+      "src": "/api/register",
+      "methods": ["OPTIONS"],
+      "dest": "/src/index.ts"
+    },
+    {
       "src": "/webhook",
       "methods": ["POST"],
       "dest": "/src/index.ts"
@@ -30,7 +35,7 @@
     },
     {
       "src": "/api/products/([^/]+)/availability",
-      "methods": ["PATCH"],
+      "methods": ["PATCH", "OPTIONS"],
       "dest": "/src/index.ts"
     },
     {

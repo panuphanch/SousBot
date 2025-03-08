@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { registerShop } from '../utils/api';
+import { registerShop, apiCheckHealth } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { logError, logInfo } from '../utils/logger';
 
@@ -18,24 +18,22 @@ export default function RegisterForm({ liff, onSuccess }) {
 
     try {
       const profile = await liff.getProfile();
+
+      logInfo('Get Profile', {
+        profile: profile
+      });
+
       const userData = {
         lineUserId: profile.userId,
         displayName: profile.displayName,
         shopName: shopName,
       };
 
-      logInfo('Get Profile', {
-        lineUserId: profile.userId,
-        displayName: profile.displayName,
-        shopName: shopName,
-      });
-
       const result = await registerShop(userData);
       onSuccess(result);
     } catch (err) {
       setError('การลงทะเบียนล้มเหลว กรุณาลองใหม่อีกครั้ง');
       logError('Shop registration failed', {
-        lineUserId: profile.userId,
         shopName: shopName,
         error: err,
       });

@@ -2,6 +2,7 @@ import Head from "next/head";
 import packageJson from "../package.json";
 import { useEffect, useState } from "react";
 import { logError, logInfo } from "../utils/logger";
+import { apiCheckHealth } from "../utils/api";
 
 export default function Home(props) {
   const { liff, liffError } = props;
@@ -22,9 +23,8 @@ export default function Home(props) {
 
   const checkHealth = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
-      const data = await response.json();
-      setHealthStatus(data.status);
+      const response = await apiCheckHealth();
+      setHealthStatus(response.status);
     } catch (error) {
       console.error('Error checking health:', error);
       setHealthStatus('Error');

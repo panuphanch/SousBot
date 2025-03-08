@@ -12,7 +12,25 @@ dotenv.config();
 initializeFirebase();
 
 const app = express();
+
+// Request logger middleware
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  console.log('Request headers:', req.headers);
+  next();
+});
+
+// Apply CORS middleware first
 app.use(allowCors);
+
+// Apply JSON parsing for all routes EXCEPT the webhook
+app.use((req, res, next) => {
+  if (req.url === '/webhook') {
+    // Skip JSON parsing for the webhook route
+    return next();
+  }
+  express.json()(req, res, next);
+});
 
 const port = process.env.PORT || 3000;
 
@@ -30,6 +48,22 @@ const lineConfig = {
 };
 
 const lineService = new LineService(lineConfig);
+
+// Add explicit OPTIONS handlers for all routes that need them
+app.options('/api/register', (req, res) => {
+  console.log('Explicit OPTIONS handler for /api/register');
+  res.status(200).end();
+});
+
+app.options('/api/products/:userId', (req, res) => {
+  console.log('Explicit OPTIONS handler for /api/products/:userId');
+  res.status(200).end();
+});
+
+app.options('/api/products/:productId/availability', (req, res) => {
+  console.log('Explicit OPTIONS handler for /api/products/:productId/availability');
+  res.status(200).end();
+});
 
 app.get('/api/products/:userId', async (req, res) => {
   try {
@@ -61,13 +95,29 @@ app.patch('/api/products/:productId/availability', async (req, res) => {
   }
 });
 
-app.post('/api/register', express.json(), async (req, res) => {
+app.post('/api/register', async (req, res) => {
   try {
+    console.log('Received registration request body:', req.body);
+    
+    // Check if the body is empty
+    if (!req.body || Object.keys(req.body).length === 0) {
+      console.error('Empty request body received');
+      return res.status(400).json({
+        success: false,
+        message: 'Empty request body'
+      });
+    }
+
     const userRepo = new UserRepository();
     const { lineUserId, shopName, displayName } = req.body;
 
     // Validate required fields
     if (!lineUserId || !shopName || !displayName) {
+      console.error('Missing required fields:', { 
+        lineUserId: !!lineUserId, 
+        shopName: !!shopName, 
+        displayName: !!displayName 
+      });
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
@@ -77,6 +127,7 @@ app.post('/api/register', express.json(), async (req, res) => {
     // Check if user already exists
     const existingUser = await userRepo.getByLineUserId(lineUserId);
     if (existingUser) {
+      console.log('User already registered:', lineUserId);
       return res.status(409).json({
         success: false,
         message: 'User already registered'
@@ -90,6 +141,7 @@ app.post('/api/register', express.json(), async (req, res) => {
       displayName
     });
 
+    console.log('User created successfully:', user);
     res.status(201).json({
       success: true,
       data: user
@@ -118,6 +170,11 @@ app.post('/webhook', middleware(lineConfig), (req, res) => {
       console.error('Webhook error:', err);
       res.status(500).json({ error: 'Internal server error' });
     });
+});
+
+app.options('/health', (req, res) => {
+  console.log('Explicit OPTIONS handler for /health');
+  res.status(200).end();
 });
 
 app.get('/health', (req, res) => {
