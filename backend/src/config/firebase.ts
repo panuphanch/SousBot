@@ -1,16 +1,18 @@
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { logInfo } from '../utils/logger';
+import { log } from 'console';
 
 let db: ReturnType<typeof getFirestore>;
 
 export function initializeFirebase() {
   if (!db) {
-    console.log('Initializing Firebase...');
+    logInfo('Initializing Firebase...');
     
     if (process.env.FIREBASE_PRIVATE_KEY) {
-      console.log('Using environment variables for Firebase');
+      logInfo('Using environment variables for Firebase');
       const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
-      console.log('Private key length:', privateKey.length);
+      logInfo(`Private key: ${privateKey}`);
 
       initializeApp({
         credential: cert({
@@ -20,7 +22,7 @@ export function initializeFirebase() {
         }),
       });
     } else {
-      console.log('Using service account for Firebase');
+      logInfo('Using service account for Firebase');
       const serviceAccount = require('../../../serviceAccountKey.json');
       initializeApp({
         credential: cert(serviceAccount),

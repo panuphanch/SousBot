@@ -29,6 +29,12 @@ export default function RegisterForm({ liff, onSuccess }) {
         shopName: shopName,
       };
 
+      logInfo('Get Profile', {
+        lineUserId: profile.userId,
+        displayName: profile.displayName,
+        shopName: shopName,
+      });
+
       const result = await registerShop(userData);
       onSuccess(result);
     } catch (err) {

@@ -1,6 +1,8 @@
 import { Client, WebhookEvent, MessageEvent, FollowEvent, QuickReply } from '@line/bot-sdk';
 import { UserRepository, ProductRepository, OrderRepository } from '../../repositories/firebase';
 import { User } from '../../types';
+import * as process from 'process'; // Add this import
+import { logError, logInfo } from '../../utils/logger';
 
 enum CommandType {
   MENU = '🍰 จัดการเมนู',
@@ -28,7 +30,9 @@ export class LineService {
   // Main webhook handler - similar to ASP.NET controller action
   async handleWebhook(events: WebhookEvent[]): Promise<void> {
     if (!Array.isArray(events)) {
-      console.error('Invalid events payload:', events);
+      logError('Invalid events payload:', {
+        events: events
+      });
       throw new Error('Invalid events payload');
     }
     
@@ -39,10 +43,12 @@ export class LineService {
           if (event.type === 'message') {
             await this.handleMessage(event);
           } else if (event.type === 'follow') {
-            await this.handleFollow(event);
+            await this.handleFollow(event.replyToken);
           }
         } catch (error) {
-          console.error(`Error handling event: ${error}`);
+          logError('Error handling event:', {
+            error: error
+          });
           // Send friendly error message
           if ('replyToken' in event) {
             await this.client.replyMessage(event.replyToken, {
@@ -56,6 +62,9 @@ export class LineService {
   }
 
   private async handleMessage(event: MessageEvent): Promise<void> {
+    logInfo('Received message:', {
+      event: event
+    });
     if (event.message.type !== 'text') return;
 
     const userId = event.source.userId;
@@ -68,8 +77,23 @@ export class LineService {
     
     // If user not registered, send them to LIFF registration page
     if (!user) {
-      const liffUrl = `${process.env.LIFF_URL}/register`;
-      await this.client.replyMessage(event.replyToken, {
+      await this.handleFollow(event.replyToken);
+      return;
+    }
+
+    // Main command handler - similar to C# switch expression
+    if (text === 'สมพร') {
+      await this.sendMainMenu(event.replyToken);
+    } else if (Object.values(CommandType).includes(text as CommandType)) {
+      await this.handleCommand(text as CommandType, event.replyToken, user);
+    } else {
+      await this.handleFreeTextInput(text, event.replyToken, user);
+    }
+  }
+
+  private async handleFollow(replyToken: string): Promise<void> {
+    const liffUrl = `${process.env.LIFF_URL}/register`;
+      await this.client.replyMessage(replyToken, {
         type: 'flex',
         altText: 'ลงทะเบียนร้านค้า',
         contents: {
@@ -108,32 +132,8 @@ export class LineService {
           }
         }
       });
-      return;
-    }
-
-    // Main command handler - similar to C# switch expression
-    if (text === 'สมพร') {
-      await this.sendMainMenu(event.replyToken);
-    } else if (Object.values(CommandType).includes(text as CommandType)) {
-      await this.handleCommand(text as CommandType, event.replyToken, user);
-    } else {
-      await this.handleFreeTextInput(text, event.replyToken, user);
-    }
   }
-
-  private async handleFollow(event: FollowEvent): Promise<void> {
-    const userId = event.source.userId;
-    if (!userId) return;
-    
-    const profile = await this.client.getProfile(userId);
-    const liffUrl = `https://liff.line.me/${process.env.LIFF_ID}/register/${userId}`;
-    
-    // Send welcome message with LIFF link
-    await this.client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: `สวัสดีเจ้า ${profile.displayName} 🙏\nสมพรยินดีต้อนรับเจ้า มาจัดการร้านเบเกอรี่ด้วยกันเน้อ\n\nกดที่ลิงก์นี้เพื่อลงทะเบียนร้านก่อนเน้อ 👇\n${liffUrl}`
-    });
-  }
+  
 
   private async sendMainMenu(replyToken: string): Promise<void> {
     const quickReply: QuickReply = {
@@ -297,7 +297,11 @@ export class LineService {
         });
 
     } catch (error) {
-        console.error('Error in handleFreeTextInput:', error);
+        logError('Error in handleFreeTextInput:', {
+          text: text,
+          user: user,
+          replyToken: replyToken
+        });
         await this.client.replyMessage(replyToken, {
             type: 'text',
             text: 'ขออภัยเจ้า มีข้อผิดพลาดเกิดขึ้น ลองใหม่อีกครั้งเน้อ'
