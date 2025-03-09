@@ -6,6 +6,7 @@ import { ProductRepository, UserRepository } from './repositories/firebase';
 import { initializeFirebase } from './config/firebase';
 import './config/environment';
 import allowCors from './middleware/cors';
+import { logError, logInfo } from './utils/logger';
 
 dotenv.config();
 
