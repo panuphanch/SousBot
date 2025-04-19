@@ -1,105 +1,53 @@
-import Head from "next/head";
-import packageJson from "../package.json";
-import { useEffect, useState } from "react";
-import { logError, logInfo } from "../utils/logger";
-import { apiCheckHealth } from "../utils/api";
+import { useEffect, useState } from 'react';
 
-export default function Home(props) {
-  const { liff, liffError } = props;
-  const [healthStatus, setHealthStatus] = useState(null);
+export default function LandingPage() {
+  const [isLIFFEnvironment, setIsLIFFEnvironment] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (liff) {
-      logInfo('LIFF initialized:', {
-        liffVersion: liff.getVersion()
-      });
-    }
-    if (liffError) {
-      logError('LIFF initialization failed:', {
-        error: liffError
-      });
-    }
-  }, [liff, liffError]);
+    // Check if running in LIFF environment (URL contains LIFF parameters)
+    const isInLIFF = window.location.href.includes("liff.state");
+    setIsLIFFEnvironment(isInLIFF);
+    setIsLoading(false);
+  }, []);
 
-  const checkHealth = async () => {
-    try {
-      const response = await apiCheckHealth();
-      setHealthStatus(response.status);
-    } catch (error) {
-      console.error('Error checking health:', error);
-      setHealthStatus('Error');
-    }
-  };
+  // Show loading when in LIFF environment
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">กำลังโหลด...</p>
+        </div>
+      </div>
+    );
+  }
 
+  // If in LIFF environment, show only loading (redirect will happen in _app.js)
+  if (isLIFFEnvironment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">กำลังเข้าสู่ระบบ...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal landing page for non-LIFF visitors
   return (
-    <div>
-      <Head>
-        <title>LIFF Starter</title>
-      </Head>
-      <div className="home">
-        <h1 className="home__title">
-          Welcome to <br />
-          <a
-            className="home__title__link"
-            href="https://developers.line.biz/en/docs/liff/overview/"
-          >
-            LIFF Starter!
-          </a>
-        </h1>
-        <div className="home__badges">
-          <span className="home__badges__badge badge--primary">
-            LIFF Starter
-          </span>
-          <span className="home__badges__badge badge--secondary">nextjs</span>
-          <span className="home__badges__badge badge--primary">
-            {packageJson.version}
-          </span>
-          <a
-            href="https://github.com/line/line-liff-v2-starter"
-            target="_blank"
-            rel="noreferrer"
-            className="home__badges__badge badge--secondary"
-          >
-            GitHub
-          </a>
-        </div>
-        <div className="home__buttons">
-          <a
-            href="https://developers.line.biz/en/docs/liff/developing-liff-apps/"
-            target="_blank"
-            rel="noreferrer"
-            className="home__buttons__button button--primary"
-          >
-            LIFF Documentation
-          </a>
-          <a
-            href="https://liff-playground.netlify.app/"
-            target="_blank"
-            rel="noreferrer"
-            className="home__buttons__button button--tertiary"
-          >
-            LIFF Playground
-          </a>
-          <a
-            href="https://developers.line.biz/console/"
-            target="_blank"
-            rel="noreferrer"
-            className="home__buttons__button button--secondary"
-          >
-            LINE Developers Console
-          </a>
-          <button
-            onClick={checkHealth}
-            className="home__buttons__button button--primary"
-          >
-            Check Backend Health
-          </button>
-        </div>
-        {healthStatus && (
-          <div className="home__status">
-            Backend Health Status: {healthStatus}
-          </div>
-        )}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center max-w-md mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-4">Welcome to SousBot</h1>
+        <p className="mb-6">Your bakery management assistant</p>
+        
+        <a 
+          href="https://liff.line.me/2006903370-Md4Xknmy"
+          className="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded"
+        >
+          Open in LINE
+        </a>
       </div>
     </div>
   );

@@ -1,6 +1,9 @@
 module.exports = {
   reactStrictMode: true,
   env: {
-    LIFF_ID: process.env.LIFF_ID,
+    NEXT_PUBLIC_LIFF_ID: process.env.NEXT_PUBLIC_LIFF_ID,
+  },
+  images: {
+    domains: ['profile.line-scdn.net', 'obs.line-scdn.net'],
   },
 };
