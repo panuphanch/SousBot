@@ -1,10 +1,12 @@
 import { Client, WebhookEvent, MessageEvent, FollowEvent, QuickReply } from '@line/bot-sdk';
 import { UserRepository, ProductRepository, OrderRepository } from '../../repositories/firebase';
 import { User } from '../../types';
-import * as process from 'process'; // Add this import
+import * as process from 'process';
 import { logError, logInfo } from '../../utils/logger';
+import { log } from 'console';
 
 enum CommandType {
+  HOME = '🏠 หน้าหลัก',
   MENU = '🍰 จัดการเมนู',
   ORDER = '📝 จัดการออเดอร์',
   DAILY_SUMMARY = '📊 สรุปยอดวันนี้',
@@ -83,7 +85,7 @@ export class LineService {
 
     // Main command handler - similar to C# switch expression
     if (text === 'สมพร') {
-      await this.sendMainMenu(event.replyToken);
+      await this.sendMainMenu(event.replyToken, userId);
     } else if (Object.values(CommandType).includes(text as CommandType)) {
       await this.handleCommand(text as CommandType, event.replyToken, user);
     } else {
@@ -134,19 +136,74 @@ export class LineService {
       });
   }
   
-
-  private async sendMainMenu(replyToken: string): Promise<void> {
-    const quickReply: QuickReply = {
-      items: Object.values(CommandType).map(command => ({
-        type: "action" as const, // Use literal type "action"
+  private async sendMainMenu(replyToken: string, userId: string): Promise<void> {
+    logInfo('Preparing Quick Reply Items:', {
+      replyToken: replyToken,
+      userId: userId
+    });
+    // Create QuickReply items based on CommandType
+    const quickReplyItems = [];
+    
+    // Add URI actions for HOME, MENU, ORDER
+    const homeUrl = `${process.env.LIFF_URL}/${userId}`;
+    const menuUrl = `${process.env.LIFF_URL}/menu-management/${userId}`;
+    const orderUrl = `${process.env.LIFF_URL}/order-management/${userId}`;
+    
+    // Add HOME button with URI action
+    quickReplyItems.push({
+      type: "action" as const,
+      action: {
+        type: "uri" as const,
+        label: CommandType.HOME,
+        uri: homeUrl
+      }
+    });
+    
+    // Add MENU button with URI action
+    quickReplyItems.push({
+      type: "action" as const,
+      action: {
+        type: "uri" as const,
+        label: CommandType.MENU,
+        uri: menuUrl
+      }
+    });
+    
+    // Add ORDER button with URI action
+    quickReplyItems.push({
+      type: "action" as const,
+      action: {
+        type: "uri" as const,
+        label: CommandType.ORDER,
+        uri: orderUrl
+      }
+    });
+    
+    // Add remaining command buttons with message actions
+    [
+      CommandType.DAILY_SUMMARY,
+      CommandType.STOCK,
+      CommandType.TODAY_ORDERS,
+      CommandType.WEEKLY_SUMMARY,
+      CommandType.MONTHLY_SUMMARY
+    ].forEach(command => {
+      quickReplyItems.push({
+        type: "action" as const,
         action: {
-          type: "message" as const, // Use literal type "message"
+          type: "message" as const,
           label: command,
           text: command
         }
-      }))
+      });
+    });
+
+    const quickReply: QuickReply = {
+      items: quickReplyItems
     };
 
+    logInfo('Quick Reply Items:', {
+      quickReply: quickReply
+    });
     await this.client.replyMessage(replyToken, {
       type: 'text',
       text: 'สมพรมาแล้วเจ้า! มาจัดการร้านเบเกอรี่กันเน้อ 🧁',
@@ -155,17 +212,7 @@ export class LineService {
   }
 
   private async handleCommand(command: CommandType, replyToken: string, user: User): Promise<void> {
-    switch (command) {
-      case CommandType.MENU:
-        // Open LIFF page for menu management
-        await this.openLiffPage(replyToken, 'menu-management', user.lineUserId);
-        break;
-      
-      case CommandType.ORDER:
-        // Open LIFF page for order management
-        await this.openLiffPage(replyToken, 'order-management', user.lineUserId);
-        break;
-      
+    switch (command) {      
       case CommandType.DAILY_SUMMARY:
         await this.sendDailySummary(replyToken, user);
         break;
@@ -175,15 +222,13 @@ export class LineService {
         break;
 
       // Add other command handlers
+      default:
+        await this.client.replyMessage(replyToken, {
+          type: 'text',
+          text: 'ขออภัยเจ้า คำสั่งนี้ยังไม่เปิดให้ใช้งานเน้อ จะพัฒนาเร็วๆ นี้เจ้า'
+        });
+        break;
     }
-  }
-
-  private async openLiffPage(replyToken: string, page: string, userId: string): Promise<void> {
-    const liffUrl = `https://liff.line.me/${process.env.LIFF_ID}/${page}/${userId}`;
-    await this.client.replyMessage(replyToken, {
-      type: 'text',
-      text: `กดที่ลิงก์นี้เพื่อจัดการเน้อเจ้า 👇\n${liffUrl}`
-    });
   }
 
   private async sendDailySummary(replyToken: string, user: User): Promise<void> {
@@ -256,6 +301,8 @@ export class LineService {
 
         // Check for menu-related queries
         if (lowerText.includes('เมนู') || lowerText.includes('menu')) {
+            // Create URI action for menu management
+            const menuUrl = `${process.env.LIFF_URL}/menu-management/${user.lineUserId}`;
             await this.client.replyMessage(replyToken, {
                 type: 'text',
                 text: 'จะดูเมนูใช่ไหมเจ้า? กดปุ่ม "🍰 จัดการเมนู" ได้เลยเน้อ',
@@ -263,9 +310,9 @@ export class LineService {
                     items: [{
                         type: "action" as const,
                         action: {
-                            type: "message" as const,
+                            type: "uri" as const,
                             label: CommandType.MENU,
-                            text: CommandType.MENU
+                            uri: menuUrl
                         }
                     }]
                 }
